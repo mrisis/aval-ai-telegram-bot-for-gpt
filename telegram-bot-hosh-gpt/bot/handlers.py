@@ -2,9 +2,10 @@ import logging
 import requests
 from telegram import Update
 from telegram.ext import CallbackContext, ContextTypes
-from .config import settings
 from .models.user_model import User
 from .crud.user_crud import UserCRUD
+from .config import settings
+from .keyboards.inline_keyboards import get_join_channel_keyboard
 
 logger = logging.getLogger(__name__)
 
@@ -43,9 +44,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         new_user = User(username=user.from_user.username, chat_id=user.from_user.id)
     else:
         new_user = User(username=f'{user.from_user.first_name}-{user.from_user.last_name}', chat_id=user.from_user.id)
-
     UserCRUD.create(new_user)
     logger.info(f'New user registered: {new_user.username}')
+
+    channel_id = settings.channel_id
+    await update.message.reply_text(
+        "خوش آمدید! برای استفاده از این ربات ابتدا باید درکانال ما عضو شوید .",
+        reply_markup=get_join_channel_keyboard(channel_id=channel_id)
+    )
 
 
 async def handle_message(update: Update, context: CallbackContext) -> None:
