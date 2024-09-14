@@ -38,7 +38,7 @@ def chat_with_gpt(message: str) -> str:
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text('Welcome! How can I assist you today?')
+
     user = update.message
     if user.from_user.username:
         new_user = User(username=user.from_user.username, chat_id=user.from_user.id)
@@ -54,7 +54,18 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     )
 
 
+
 async def handle_message(update: Update, context: CallbackContext) -> None:
+    user_id = update.message.from_user.id
+    channel_id = settings.channel_id
+    member_status = await context.bot.get_chat_member(chat_id=channel_id, user_id=user_id)
+
+
+    if member_status.status not in ['member', 'administrator', 'creator']:
+        await update.message.reply_text("برای استفاده از ربات باید ابتدا در کانال عضو شوید.")
+        return
+    else:
+        await update.message.reply_text("شما عضو کانال هستید و می‌توانید از ربات استفاده کنید.")
     user_message = update.message.text
     logger.info(f'Received message: {user_message}')
     response_message = chat_with_gpt(user_message)
